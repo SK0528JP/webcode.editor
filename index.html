@@ -2,9 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Online Code Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
         body {
             display: flex;
@@ -12,14 +17,20 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             background-color: #f0f0f0;
+            transition: background-color 0.3s;
         }
 
         .container {
             display: flex;
             width: 90%;
             height: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
         .editor-container {
@@ -28,46 +39,122 @@
             width: 50%;
             padding: 10px;
             box-sizing: border-box;
+            background: #fafafa;
+            transition: background 0.3s;
         }
 
         .editor-container h2 {
+            display: flex;
+            align-items: center;
             margin: 10px 0 5px;
+        }
+
+        .editor-container h2 .material-icons {
+            cursor: pointer;
+            margin-left: auto;
         }
 
         .CodeMirror {
             height: auto;
             border: 1px solid #ddd;
             margin-bottom: 10px;
-            border-radius: 4px;
+            border-radius: 8px;
+            background: white;
+            transition: background 0.3s, border 0.3s;
         }
 
         .preview-container {
             width: 50%;
             padding: 10px;
             box-sizing: border-box;
+            position: relative;
         }
 
         iframe {
             width: 100%;
             height: 100%;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             background-color: white;
+            transition: background-color 0.3s, border 0.3s;
+        }
+
+        .copy-btn, .new-window-btn {
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .resizer {
+            width: 5px;
+            background: #ccc;
+            cursor: ew-resize;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dark-mode .container {
+            background: #333;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .dark-mode .editor-container {
+            background: #444;
+        }
+
+        .dark-mode .CodeMirror {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+        }
+
+        .dark-mode .preview-container iframe {
+            background-color: #333;
+            border: 1px solid #555;
+        }
+
+        .dark-mode body {
+            background-color: #222;
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .dark-mode .dark-mode-toggle {
+            background: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+            color: #fff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="dark-mode-toggle">
+        <span class="material-icons">brightness_6</span>
+    </div>
+    <div class="container" id="split-container">
         <div class="editor-container">
-            <h2>HTML</h2>
+            <h2>HTML <span class="material-icons copy-btn" data-editor="html">content_copy</span></h2>
             <textarea id="html-editor" name="html-editor"></textarea>
-            <h2>CSS</h2>
+            <h2>CSS <span class="material-icons copy-btn" data-editor="css">content_copy</span></h2>
             <textarea id="css-editor" name="css-editor"></textarea>
-            <h2>JavaScript</h2>
+            <h2>JavaScript <span class="material-icons copy-btn" data-editor="js">content_copy</span></h2>
             <textarea id="js-editor" name="js-editor"></textarea>
         </div>
+        <div class="resizer"></div>
         <div class="preview-container">
             <iframe id="preview"></iframe>
+            <span class="material-icons new-window-btn" id="open-new-window">open_in_new</span>
         </div>
     </div>
 
@@ -112,7 +199,73 @@
 
             // 初期表示
             updatePreview();
+
+            // コード全コピー機能
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const editorType = btn.getAttribute('data-editor');
+                    let editor;
+
+                    switch (editorType) {
+                        case 'html':
+                            editor = htmlEditor;
+                            break;
+                        case 'css':
+                            editor = cssEditor;
+                            break;
+                        case 'js':
+                            editor = jsEditor;
+                            break;
+                    }
+
+                    const code = editor.getValue();
+                    navigator.clipboard.writeText(code).then(() => {
+                        alert('コードがクリップボードにコピーされました！');
+                    }).catch(err => {
+                        console.error('コピーに失敗しました: ', err);
+                    });
+                });
+            });
+
+            // 結果表示ウィンドウのサイズ変更機能
+            const resizer = document.querySelector('.resizer');
+            const leftSide = resizer.previousElementSibling;
+            const rightSide = resizer.nextElementSibling;
+
+            resizer.addEventListener('mousedown', (e) => {
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+
+            function resize(e) {
+                const containerWidth = resizer.parentNode.getBoundingClientRect().width;
+                const leftWidth = ((e.clientX - resizer.parentNode.getBoundingClientRect().left) / containerWidth) * 100;
+                leftSide.style.width = `${leftWidth}%`;
+                rightSide.style.width = `${100 - leftWidth}%`;
+            }
+
+            function stopResize() {
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+
+            // 結果表示ウィンドウを別ウィンドウで開く機能
+            document.getElementById('open-new-window').addEventListener('click', () => {
+                const htmlContent = htmlEditor.getValue();
+                const cssContent = `<style>${cssEditor.getValue()}</style>`;
+                const jsContent = `<script>${jsEditor.getValue()}<\/script>`;
+                const newWindow = window.open();
+                newWindow.document.write(htmlContent + cssContent + jsContent);
+                newWindow.document.close();
+            });
+
+            // ダークモード切り替え機能
+            const darkModeToggle = document.querySelector('.dark-mode-toggle');
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+            });
         });
     </script>
 </body>
 </html>
+
