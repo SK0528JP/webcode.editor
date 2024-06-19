@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Code Editor</title>
+    <title>Web Code Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
@@ -11,7 +11,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             margin: 0;
             font-family: 'Roboto', sans-serif;
             background-color: #f0f0f0;
@@ -77,7 +76,7 @@
             transition: background-color 0.3s, border 0.3s;
         }
 
-        .copy-btn, .new-window-btn {
+        .copy-btn {
             cursor: pointer;
             margin-left: 10px;
         }
@@ -139,7 +138,7 @@
             <textarea id="js-editor" name="js-editor"></textarea>
         </div>
         <div class="preview-container">
-            <button class="new-window-btn">Open in New Window</button>
+            <iframe id="preview"></iframe>
         </div>
     </div>
 
@@ -212,24 +211,6 @@
                 });
             });
 
-            // 結果表示ウィンドウを別ウィンドウで開く機能
-            document.querySelector('.new-window-btn').addEventListener('click', () => {
-                const htmlContent = htmlEditor.getValue();
-                const cssContent = `<style>${cssEditor.getValue()}</style>`;
-                const jsContent = `<script>${jsEditor.getValue()}<\/script>`;
-                const newWindow = window.open();
-                newWindow.document.open();
-                newWindow.document.write(htmlContent + cssContent + jsContent);
-                newWindow.document.close();
-
-                // ウィンドウが閉じられたときのイベントリスナーを追加
-                newWindow.addEventListener('beforeunload', () => {
-                    htmlEditor.setValue(newWindow.document.querySelector('textarea[name="html-editor"]').value);
-                    cssEditor.setValue(newWindow.document.querySelector('textarea[name="css-editor"]').value);
-                    jsEditor.setValue(newWindow.document.querySelector('textarea[name="js-editor"]').value);
-                });
-            });
-
             // ダークモード切り替え機能
             const darkModeToggle = document.querySelector('.dark-mode-toggle');
             darkModeToggle.addEventListener('click', () => {
@@ -239,4 +220,3 @@
     </script>
 </body>
 </html>
-
