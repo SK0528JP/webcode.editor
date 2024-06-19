@@ -2,10 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Online Code Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
@@ -24,6 +20,7 @@
 
         .container {
             display: flex;
+            flex-direction: column;
             width: 90%;
             height: 90%;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -36,7 +33,7 @@
         .editor-container {
             display: flex;
             flex-direction: column;
-            width: 50%;
+            flex-grow: 1;
             padding: 10px;
             box-sizing: border-box;
             background: #fafafa;
@@ -64,10 +61,12 @@
         }
 
         .preview-container {
-            width: 50%;
+            width: 100%;
             padding: 10px;
             box-sizing: border-box;
             position: relative;
+            display: flex;
+            justify-content: center;
         }
 
         iframe {
@@ -82,17 +81,6 @@
         .copy-btn, .new-window-btn {
             cursor: pointer;
             margin-left: 10px;
-        }
-
-        .resizer {
-            width: 5px;
-            background: #ccc;
-            cursor: ew-resize;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
         }
 
         .dark-mode .container {
@@ -151,7 +139,6 @@
             <h2>JavaScript <span class="material-icons copy-btn" data-editor="js">content_copy</span></h2>
             <textarea id="js-editor" name="js-editor"></textarea>
         </div>
-        <div class="resizer"></div>
         <div class="preview-container">
             <iframe id="preview"></iframe>
             <span class="material-icons new-window-btn" id="open-new-window">open_in_new</span>
@@ -227,34 +214,13 @@
                 });
             });
 
-            // 結果表示ウィンドウのサイズ変更機能
-            const resizer = document.querySelector('.resizer');
-            const leftSide = resizer.previousElementSibling;
-            const rightSide = resizer.nextElementSibling;
-
-            resizer.addEventListener('mousedown', (e) => {
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', stopResize);
-            });
-
-            function resize(e) {
-                const containerWidth = resizer.parentNode.getBoundingClientRect().width;
-                const leftWidth = ((e.clientX - resizer.parentNode.getBoundingClientRect().left) / containerWidth) * 100;
-                leftSide.style.width = `${leftWidth}%`;
-                rightSide.style.width = `${100 - leftWidth}%`;
-            }
-
-            function stopResize() {
-                document.removeEventListener('mousemove', resize);
-                document.removeEventListener('mouseup', stopResize);
-            }
-
             // 結果表示ウィンドウを別ウィンドウで開く機能
             document.getElementById('open-new-window').addEventListener('click', () => {
                 const htmlContent = htmlEditor.getValue();
                 const cssContent = `<style>${cssEditor.getValue()}</style>`;
                 const jsContent = `<script>${jsEditor.getValue()}<\/script>`;
                 const newWindow = window.open();
+                newWindow.document.open();
                 newWindow.document.write(htmlContent + cssContent + jsContent);
                 newWindow.document.close();
             });
