@@ -130,7 +130,7 @@
     <div class="dark-mode-toggle">
         <span class="material-icons">brightness_6</span>
     </div>
-    <div class="container" id="split-container">
+    <div class="container">
         <div class="editor-container">
             <h2>HTML <span class="material-icons copy-btn" data-editor="html">content_copy</span></h2>
             <textarea id="html-editor" name="html-editor"></textarea>
@@ -140,8 +140,7 @@
             <textarea id="js-editor" name="js-editor"></textarea>
         </div>
         <div class="preview-container">
-            <iframe id="preview"></iframe>
-            <span class="material-icons new-window-btn" id="open-new-window">open_in_new</span>
+            <button class="new-window-btn">Open in New Window</button>
         </div>
     </div>
 
@@ -215,7 +214,7 @@
             });
 
             // 結果表示ウィンドウを別ウィンドウで開く機能
-            document.getElementById('open-new-window').addEventListener('click', () => {
+            document.querySelector('.new-window-btn').addEventListener('click', () => {
                 const htmlContent = htmlEditor.getValue();
                 const cssContent = `<style>${cssEditor.getValue()}</style>`;
                 const jsContent = `<script>${jsEditor.getValue()}<\/script>`;
@@ -223,6 +222,13 @@
                 newWindow.document.open();
                 newWindow.document.write(htmlContent + cssContent + jsContent);
                 newWindow.document.close();
+
+                // ウィンドウが閉じられたときのイベントリスナーを追加
+                newWindow.addEventListener('beforeunload', () => {
+                    htmlEditor.setValue(newWindow.document.querySelector('textarea[name="html-editor"]').value);
+                    cssEditor.setValue(newWindow.document.querySelector('textarea[name="css-editor"]').value);
+                    jsEditor.setValue(newWindow.document.querySelector('textarea[name="js-editor"]').value);
+                });
             });
 
             // ダークモード切り替え機能
