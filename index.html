@@ -29,6 +29,7 @@
             background: white;
             transition: background 0.3s, box-shadow 0.3s;
             margin-bottom: 20px;
+            position: relative;
         }
 
         .editor-container {
@@ -60,6 +61,7 @@
             border-radius: 8px;
             background: white;
             transition: background 0.3s, border 0.3s;
+            flex-grow: 1;
         }
 
         .copy-btn {
@@ -79,11 +81,13 @@
 
         iframe {
             width: 100%;
-            height: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
             border: 1px solid #ddd;
             border-radius: 8px;
             background-color: white;
             transition: background-color 0.3s, border 0.3s;
+            overflow-y: auto;
         }
 
         .dark-mode .container {
@@ -147,10 +151,13 @@
             transition: background 0.3s, box-shadow 0.3s;
             display: flex;
             align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
         }
 
         .new-window-btn .material-icons {
-            margin-right: 5px;
+            margin: 0;
         }
 
         .dark-mode .new-window-btn {
@@ -181,6 +188,18 @@
             color: inherit;
             font-weight: bold;
         }
+
+        .console-container {
+            padding: 10px;
+            background: #222;
+            color: #fff;
+            border-radius: 8px;
+            margin-top: 10px;
+            height: 150px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
     </style>
 </head>
 <body>
@@ -199,7 +218,7 @@
         <div class="preview-container">
             <iframe id="preview"></iframe>
             <button class="new-window-btn">
-                <span class="material-icons">open_in_new</span> Open in New Window
+                <span class="material-icons">open_in_new</span>
             </button>
         </div>
     </div>
@@ -208,6 +227,7 @@
         <div>Update Info: Initial release with basic functionalities and dark mode.</div>
         <div><a href="mailto:sk0528jp@gmail.com">Send Feedback</a></div>
     </footer>
+    <div class="console-container" id="console"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/xml/xml.min.js"></script>
@@ -236,29 +256,27 @@
             function updatePreview() {
                 const htmlContent = htmlEditor.getValue();
                 const cssContent = `<style>${cssEditor.getValue()}</style>`;
-                const jsContent = `<script>${jsEditor.getValue()}<\/script>`;
+                const jsContent = `<script>
+                    (function() {
+                        try {
+                            ${jsEditor.getValue()}
+                        } catch (e) {
+                            const consoleDiv = document.getElementById('console');
+                            consoleDiv.innerHTML = e + '<br>' + consoleDiv.innerHTML;
+                        }
+                    })();
+                <\/script>`;
                 const previewFrame = document.getElementById('preview');
-                const previewDocument = previewFrame.contentDocument || previewFrame.contentWindow.document;
-                previewDocument.open();
-                previewDocument.write(htmlContent + cssContent + jsContent);
-                previewDocument.close();
-                
-                if (newWindow && !newWindow.closed) {
-                    const newWindowDocument = newWindow.document;
-                    newWindowDocument.open();
-                    newWindowDocument.write(htmlContent + cssContent + jsContent);
-                    newWindowDocument.close();
-                }
+                const preview = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                preview.open();
+                preview.write(htmlContent + cssContent + jsContent);
+                preview.close();
             }
 
             htmlEditor.on('change', updatePreview);
             cssEditor.on('change', updatePreview);
             jsEditor.on('change', updatePreview);
 
-            // 初期表示
-            updatePreview();
-
-            // コード全コピー機能
             document.querySelectorAll('.copy-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const editorType = btn.getAttribute('data-editor');
@@ -285,19 +303,25 @@
                 });
             });
 
-            // 結果表示ウィンドウを別ウィンドウで開く機能
             let newWindow;
             document.querySelector('.new-window-btn').addEventListener('click', () => {
                 const htmlContent = htmlEditor.getValue();
                 const cssContent = `<style>${cssEditor.getValue()}</style>`;
-                const jsContent = `<script>${jsEditor.getValue()}<\/script>`;
+                const jsContent = `<script>
+                    (function() {
+                        try {
+                            ${jsEditor.getValue()}
+                        } catch (e) {
+                            document.body.innerHTML = e + '<br>' + document.body.innerHTML;
+                        }
+                    })();
+                <\/script>`;
                 newWindow = window.open();
                 newWindow.document.open();
                 newWindow.document.write(htmlContent + cssContent + jsContent);
                 newWindow.document.close();
             });
 
-            // ダークモード切り替え機能
             const darkModeToggle = document.querySelector('.dark-mode-toggle');
             darkModeToggle.addEventListener('click', () => {
                 document.body.classList.toggle('dark-mode');
