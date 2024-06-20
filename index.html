@@ -83,8 +83,7 @@
 
         iframe {
             width: 100%;
-            height: 0;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 100%;
             border: 1px solid #ddd;
             border-radius: 8px;
             background-color: white;
@@ -219,9 +218,6 @@
         </div>
         <div class="preview-container">
             <iframe id="preview"></iframe>
-            <button class="new-window-btn">
-                <span class="material-icons">open_in_new</span>
-            </button>
         </div>
     </div>
     <footer>
@@ -305,25 +301,6 @@
                 });
             });
 
-            let newWindow;
-            document.querySelector('.new-window-btn').addEventListener('click', () => {
-                const htmlContent = htmlEditor.getValue();
-                const cssContent = `<style>${cssEditor.getValue()}</style>`;
-                const jsContent = `<script>
-                    (function() {
-                        try {
-                            ${jsEditor.getValue()}
-                        } catch (e) {
-                            document.body.innerHTML = e + '<br>' + document.body.innerHTML;
-                        }
-                    })();
-                <\/script>`;
-                newWindow = window.open();
-                newWindow.document.open();
-                newWindow.document.write(htmlContent + cssContent + jsContent);
-                newWindow.document.close();
-            });
-
             const darkModeToggle = document.querySelector('.dark-mode-toggle');
             darkModeToggle.addEventListener('click', () => {
                 document.body.classList.toggle('dark-mode');
@@ -336,3 +313,4 @@
     </script>
 </body>
 </html>
+
