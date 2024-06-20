@@ -248,49 +248,5 @@
                 const previewFrame = document.getElementById('preview');
                 const preview = previewFrame.contentDocument || previewFrame.contentWindow.document;
                 preview.open();
-                preview.write(htmlContent + cssContent + jsContent);
-                preview.close();
-            }
+                preview.write(htmlContent + cssContent
 
-            htmlEditor.on('change', updatePreview);
-            cssEditor.on('change', updatePreview);
-            jsEditor.on('change', updatePreview);
-
-            document.querySelectorAll('.copy-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const editorType = btn.getAttribute('data-editor');
-                    let editor;
-
-                    switch (editorType) {
-                        case 'html':
-                            editor = htmlEditor;
-                            break;
-                        case 'css':
-                            editor = cssEditor;
-                            break;
-                        case 'js':
-                            editor = jsEditor;
-                            break;
-                    }
-
-                    const code = editor.getValue();
-                    navigator.clipboard.writeText(code).then(() => {
-                        alert('コードがクリップボードにコピーされました！');
-                    }).catch(err => {
-                        console.error('コピーに失敗しました: ', err);
-                    });
-                });
-            });
-
-            const darkModeToggle = document.querySelector('.dark-mode-toggle');
-            darkModeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                const newTheme = document.body.classList.contains('dark-mode') ? 'dracula' : 'default';
-                htmlEditor.setOption('theme', newTheme);
-                cssEditor.setOption('theme', newTheme);
-                jsEditor.setOption('theme', newTheme);
-            });
-        });
-    </script>
-</body>
-</html>
