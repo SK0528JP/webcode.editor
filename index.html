@@ -18,7 +18,7 @@
             background-color: #f0f0f0;
             transition: background-color 0.3s;
         }
-        
+
         .dark-mode body {
             color: #fff;
         }
@@ -37,9 +37,8 @@
         }
 
         .editor-container {
-            width: 33.3%;
             display: flex;
-            flex-grow: 1;
+            width: 100%;
             padding: 10px;
             background: #fafafa;
             transition: background 0.3s;
@@ -47,7 +46,7 @@
 
         .editor {
             flex: 1;
-            margin: 0 5px;
+            margin: 0 10px;
             display: flex;
             flex-direction: column;
         }
@@ -82,10 +81,15 @@
             padding: 10px;
             box-sizing: border-box;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            flex-grow: 1;
             background: #fafafa;
             transition: background 0.3s;
+        }
+
+        .preview-container h2 {
+            margin: 10px 0;
         }
 
         iframe {
@@ -94,6 +98,7 @@
             border-radius: 8px;
             background-color: white;
             transition: background-color 0.3s, border 0.3s;
+            flex-grow: 1;
         }
 
         .dark-mode .container {
@@ -180,7 +185,7 @@
             height: 256px;
             overflow-y: auto;
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column;
             width: 95%;
         }
 
@@ -191,32 +196,26 @@
             border-bottom: 1px solid #444;
         }
 
-        .console-container textarea {
+        .console-input {
             flex-grow: 1;
             width: 100%;
-            border: 1px solid #444;
-            border-radius: 8px;
-            background: #222;
-            color: #fff;
-            padding: 10px;
-            box-sizing: border-box;
-            margin-top: 10px;
-            resize: none;
-        }
-
-        .console-container button {
-            align-self: flex-end;
-            padding: 5px 10px;
             border: none;
-            border-radius: 4px;
-            background: #333;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.3s;
+            border-radius: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            margin: 0;
+            resize: none;
+            outline: none;
+            font-family: monospace;
         }
 
-        .console-container button:hover {
-            background: #555;
+        .console-output {
+            flex-grow: 1;
+            width: 100%;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -240,13 +239,14 @@
             </div>
         </div>
         <div class="preview-container">
+            <h2>Preview</h2>
             <iframe id="preview"></iframe>
         </div>
     </div>
     <div class="console-container" id="console">
         <h2>Console</h2>
-        <textarea id="console-input" rows="4" placeholder="Type your JavaScript code here..."></textarea>
-        <button id="run-console">Run</button>
+        <div class="console-output" id="console-output"></div>
+        <textarea class="console-input" id="console-input" rows="1"></textarea>
     </div>
     <footer>
         <div>Version: 4.7.2</div>
@@ -291,8 +291,8 @@
                         try {
                             ${jsEditor.getValue()}
                         } catch (e) {
-                            const consoleDiv = document.getElementById('console');
-                            consoleDiv.innerHTML = e + '<br>' + consoleDiv.innerHTML;
+                            const consoleDiv = document.getElementById('console-output');
+                            consoleDiv.innerHTML = 'Error: ' + e + '<br>' + consoleDiv.innerHTML;
                         }
                     })();
                 <\/script>`;
@@ -329,16 +329,20 @@
                 jsEditor.setOption('theme', document.body.classList.contains('dark-mode') ? 'dracula' : 'default');
             });
 
-            const runConsoleButton = document.getElementById('run-console');
-            runConsoleButton.addEventListener('click', () => {
-                const consoleInput = document.getElementById('console-input').value;
-                try {
-                    const result = eval(consoleInput);
-                    const consoleDiv = document.getElementById('console');
-                    consoleDiv.innerHTML = '=> ' + result + '<br>' + consoleDiv.innerHTML;
-                } catch (e) {
-                    const consoleDiv = document.getElementById('console');
-                    consoleDiv.innerHTML = 'Error: ' + e + '<br>' + consoleDiv.innerHTML;
+            const consoleInput = document.getElementById('console-input');
+            consoleInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const consoleDiv = document.getElementById('console-output');
+                    const inputValue = consoleInput.value;
+                    consoleDiv.innerHTML += `<div>> ${inputValue}</div>`;
+                    try {
+                        const result = eval(inputValue);
+                        consoleDiv.innerHTML += `<div>${result}</div>`;
+                    } catch (err) {
+                        consoleDiv.innerHTML += `<div style="color: red;">${err}</div>`;
+                    }
+                    consoleInput.value = '';
                 }
             });
         });
