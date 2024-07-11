@@ -45,7 +45,7 @@
         }
 
         .editor {
-            flex: 1;
+            flex: 0 0 33%; /* 固定幅を設定 */
             margin: 0 10px;
             display: flex;
             flex-direction: column;
@@ -68,13 +68,11 @@
 
         .CodeMirror {
             flex-grow: 1;
-            min-width: 33%;
-            max-width: 33%;
             border: 1px solid #ddd;
             border-radius: 8px;
             background: white;
             transition: background 0.3s, border 0.3s;
-            height: 300px; /* Default size for editors */
+            height: 300px; /* デフォルトの高さ */
         }
 
         .preview-container {
